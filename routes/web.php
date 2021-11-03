@@ -1,5 +1,9 @@
 <?php
 
+Route::get('/produtos/{idproduct?}', function ($idproduct = ''){
+    return "Produto(s) {$idproduct}";
+});
+
 Route::get('/categoria/{flag}/posts', function($flag){
     return "Posts da categoria: {$flag}";
 });
