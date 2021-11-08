@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreUpdateProdutoRequest;
+use App\Models\Produto;
 use Illuminate\Http\Request;
 
 class ProdutoController extends Controller
@@ -23,13 +25,20 @@ class ProdutoController extends Controller
      */
     public function index()
     {
+        /*
         $teste = 123;
         $texto = '<b>teste</b>';
         $teste2 = 'Olá';
         $teste3 = ['opa'];
         $produtos = ['TV', 'Geladeira', 'Forno', 'Sofá'];
 
-        return view('admin.pages.produtos.index', compact('teste', 'texto', 'teste2', 'teste3', 'produtos'));
+        return view('admin.pages.produtos.index', compact('teste', 'texto', 'teste2', 'teste3', 'produtos'));*/
+
+        $produtos = Produto::paginate();
+        return view('admin.pages.produtos.index',[
+            'produtos' => $produtos,
+        ]);
+
     }
 
     /**
@@ -48,13 +57,20 @@ class ProdutoController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreUpdateProdutoRequest $request)
     {
-        if ($request->file('photo')->isValid()){
-            $nameFile = $request->file('photo')->getClientOriginalName();
+
+        $data = $request->only('nome','descricao','preco');
+
+        Produto::create($data);
+
+        return redirect()->route('produtos.index');
+
+        // if ($request->file('photo')->isValid()){
+            // $nameFile = $request->file('photo')->getClientOriginalName();
             // dd($nameFile);
-            dd($request->file('photo')->storeAs('produtos',$nameFile));
-        }
+            // dd($request->file('photo')->storeAs('produtos',$nameFile));
+        // }
     }
 
     /**
@@ -65,7 +81,15 @@ class ProdutoController extends Controller
      */
     public function show($id)
     {
-        //
+        //$produto = Produto::where('id',$id)->first();
+
+        if (!$produto = Produto::find($id)){
+            return redirect()->back();
+        }
+
+        return view('admin.pages.produtos.show',[
+            'produto' => $produto
+        ]);
     }
 
     /**
