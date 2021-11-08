@@ -1,0 +1,20 @@
+Comandos Laravel:
+
+Para criar tabela e migration juntos:
+    php artisan make:model Models\Produto -m
+
+Para criar tabela a partir da migration:
+    php artisan migrate
+    
+Para criar factory:
+    php artisan make:factory ProdutoFactory --model=Models\Produto
+
+Para criar seed:
+    php artisan make:seeder ProdutosTableSeeder
+
+Para criar os registros com base na factory:
+    php artisan db:seed --class=ProdutosTableSeeder
+
+Limpar o cache das views:
+    php artisan view:clear
+
