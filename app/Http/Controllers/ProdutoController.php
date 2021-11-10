@@ -8,13 +8,15 @@ use Illuminate\Http\Request;
 
 class ProdutoController extends Controller
 {
-
     protected $request;
+    private $repository;
 
-    public function __construct(Request $request)
+    public function __construct(Request $request, Produto $produto)
     {
         //        dd($request);
         $this->request = $request;
+
+        $this->repository = $produto;
     }
 
 
@@ -35,10 +37,9 @@ class ProdutoController extends Controller
         return view('admin.pages.produtos.index', compact('teste', 'texto', 'teste2', 'teste3', 'produtos'));*/
 
         $produtos = Produto::paginate();
-        return view('admin.pages.produtos.index',[
+        return view('admin.pages.produtos.index', [
             'produtos' => $produtos,
         ]);
-
     }
 
     /**
@@ -54,22 +55,29 @@ class ProdutoController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Request\StoreUpdateProdutoRequest  $request
      * @return \Illuminate\Http\Response
      */
     public function store(StoreUpdateProdutoRequest $request)
     {
 
-        $data = $request->only('nome','descricao','preco');
+        $data = $request->only('nome', 'descricao', 'preco');
 
-        Produto::create($data);
+        if ($request->hasFile('imagem') && $request->imagem->isValid())
+        {
+            $imagePath = $request->imagem->store('produtos');
+
+            $data['imagem'] = $imagePath;
+        }
+
+        $this->repository->create($data);
 
         return redirect()->route('produtos.index');
 
         // if ($request->file('photo')->isValid()){
-            // $nameFile = $request->file('photo')->getClientOriginalName();
-            // dd($nameFile);
-            // dd($request->file('photo')->storeAs('produtos',$nameFile));
+        // $nameFile = $request->file('photo')->getClientOriginalName();
+        // dd($nameFile);
+        // dd($request->file('photo')->storeAs('produtos',$nameFile));
         // }
     }
 
@@ -83,11 +91,11 @@ class ProdutoController extends Controller
     {
         //$produto = Produto::where('id',$id)->first();
 
-        if (!$produto = Produto::find($id)){
+        if (!$produto = $this->repository->find($id)) {
             return redirect()->back();
         }
 
-        return view('admin.pages.produtos.show',[
+        return view('admin.pages.produtos.show', [
             'produto' => $produto
         ]);
     }
@@ -100,19 +108,29 @@ class ProdutoController extends Controller
      */
     public function edit($id)
     {
-        return view('admin.pages.produtos.edit', compact('id'));
+        if (!$produto = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        return view('admin.pages.produtos.edit', compact('produto'));
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Request\StoreUpdateProdutoRequest  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(StoreUpdateProdutoRequest $request, $id)
     {
-        dd("Editando produto { $id }");
+        if (!$produto = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        $produto->update($request->all());
+
+        return redirect()->route('produtos.index');
     }
 
     /**
@@ -123,6 +141,28 @@ class ProdutoController extends Controller
      */
     public function destroy($id)
     {
-        //
+        // dd("Deletando o produto $id");
+        $produto = $this->repository->where('id', $id)->first();
+        if (!$produto) {
+            return redirect()->back();
+        }
+
+        $produto->delete();
+
+        return redirect()->route('produtos.index');
+    }
+
+    public function search(Request $request)
+    {
+        $filters = $request->except('_token');
+
+        $produtos = $this->repository->search($request->filter);
+
+        return view('admin.pages.produtos.index', [
+            'produtos' => $produtos,
+            'filters' => $filters,
+        ]);
+
+
     }
 }

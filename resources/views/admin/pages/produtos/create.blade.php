@@ -19,8 +19,9 @@
             <input type="text" class="form-control" name="descricao" placeholder="Descrição" value="{{ old('descricao') }}">
         </div>
         <div class="form-group">
-            <input type="file" class="form-control" name="photo">
+            <input type="file" class="form-control" name="imagem" value="{{ old('imagem') }}">
         </div>
         <button class="btn btn-success" type="submit">Enviar</button>
+        <a class="btn btn-primary" href="{{ route('produtos.index') }}">Voltar</a>
     </form>
 @endsection
